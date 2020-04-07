@@ -3,7 +3,7 @@
 
     <table>
         <tr>
-            <td><img src="{{user.avatar(80)}}" alt=""></td>
+            <td><img src="{{user.avatar(200)}}" alt=""></td>
             <td>
                 <p>
                     <b>{{user.username}}</b>
@@ -34,15 +34,9 @@
             </td>
         </tr>
     </table>
+    {% include '_tweet.html' %}
 
-    {% for post in posts %}
-    <table>
-        <tr>
-            <td><img src="{{user.avatar(30)}}" alt=""></td>
-            <td><p>{{ post.author.username}} says: <b>{{post.body}}</b></p></td>
-        </tr>
-    </table>
-    {% endfor %}
+
 {% endblock %}
 
 

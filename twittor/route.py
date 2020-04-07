@@ -6,23 +6,8 @@ from twittor import db
 
 @login_required
 def index():
-    
-    posts = [
-        {
-            'author':{'username':'root'},
-            'body':"Hi I'm root"
-        },
-        {
-            'author':{'username': 'test'},
-            'body': "Hi I'm test"
-        },
-        {
-            'author':{'username': 'test1'},
-            'body': "Hi I'm test1"
-        }
-        
-    ]
-    return render_template('index.html', posts = posts)
+    tweets = current_user.own_and_followed_tweets()
+    return render_template('index.html',  tweets =tweets)
 
 def login():
     if current_user.is_authenticated:
@@ -61,6 +46,8 @@ def user(username):
     u = User.query.filter_by(username=username).first()
     if u is None:
         abort(404)
+
+    tweets = u.tweets
     posts = [
         {
             'author':{'username':u.username},
@@ -78,7 +65,7 @@ def user(username):
         else:
             current_user.unfollow(u)
             db.session.commit()
-    return render_template('user.html', title='Profile',posts=posts, user=u)
+    return render_template('user.html', title='Profile',tweets=tweets, user=u)
 
 def page_not_found(e):
     return render_template('404.html'), 404
