@@ -1,13 +1,22 @@
-from flask import render_template, redirect, url_for, request, abort
+from flask import render_template, redirect, url_for, request, abort, current_app
 from flask_login import login_user, current_user, logout_user, login_required
-from twittor.forms import LoginForm, RegisterForm, EditProfileForm
+from twittor.forms import LoginForm, RegisterForm, EditProfileForm, TweetForm
 from twittor.models import User, Tweet
 from twittor import db
 
 @login_required
 def index():
-    tweets = current_user.own_and_followed_tweets()
-    return render_template('index.html',  tweets =tweets)
+    form = TweetForm()
+    if form.validate_on_submit():
+        t = Tweet(body=form.tweet.data, author=current_user)
+        db.session.add(t)
+        db.session.commit()
+        return redirect(url_for('index'))
+    page_num = int(request.args.get('page') or 1)
+    tweets = current_user.own_and_followed_tweets().paginate(page=page_num, per_page=current_app.config['TWEET_PER_PAGE'], error_out=False)
+    next_url = url_for('index', page=tweets.next_num) if tweets.has_next else None
+    prev_url = url_for('index', page=tweets.prev_num) if tweets.has_prev else None
+    return render_template('index.html',  tweets=tweets.items, form=form, next_url=next_url, prev_url=prev_url)
 
 def login():
     if current_user.is_authenticated:
@@ -46,8 +55,12 @@ def user(username):
     u = User.query.filter_by(username=username).first()
     if u is None:
         abort(404)
-
-    tweets = u.tweets
+    page_num = int(request.args.get('page') or 1)
+    tweets = u.tweets.order_by(Tweet.create_time.desc()).paginate(
+        page=page_num, per_page=current_app.config['TWEET_PER_PAGE'], error_out=False
+    )
+    next_url = url_for('profile', page=tweets.next_num, username=username) if tweets.has_next else None
+    prev_url = url_for('profile', page=tweets.prev_num, username=username) if tweets.has_prev else None
     posts = [
         {
             'author':{'username':u.username},
@@ -65,7 +78,7 @@ def user(username):
         else:
             current_user.unfollow(u)
             db.session.commit()
-    return render_template('user.html', title='Profile',tweets=tweets, user=u)
+    return render_template('user.html', title='Profile',tweets=tweets.items, user=u, next_url=next_url, prev_url=prev_url)
 
 def page_not_found(e):
     return render_template('404.html'), 404
