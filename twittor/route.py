@@ -1,7 +1,8 @@
 from flask import render_template, redirect, url_for, request, abort, current_app, flash
 from flask_login import login_user, current_user, logout_user, login_required
 from twittor.forms import LoginForm, RegisterForm, EditProfileForm, TweetForm, PasswdResetRequestForm,PasswdResetForm
-from twittor.models import User, Tweet
+from twittor.models.user import User, load_user
+from twittor.models.tweet import Tweet
 from twittor import db
 from twittor.email import send_email
 
@@ -120,7 +121,7 @@ def reset_password_request():
             url = 'http://127.0.0.1:5000/password_reset/{}'.format(token)
             send_email(
                 subject=current_app.config['MAIL_SUBJECT_RESET_PASSWORD'],
-                recipients=['ljing1027@gmail.com'],
+                recipients=['admin@admin.com'],
                 text_body= render_template(
                     'email/passwd_reset.txt',
                     url_password_reset=url_password_reset,

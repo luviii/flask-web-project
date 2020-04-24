@@ -14,7 +14,7 @@ def send_email(subject, recipients, text_body, html_body):
     msg = Message(
         subject=subject,
         recipients=recipients,
-        reply_to='ljing1027@gmail.com'
+        reply_to='admin@admin.com'
     )
     msg.body = text_body
     msg.html = html_body
